@@ -2,6 +2,7 @@ package com.ethiotour.service;
 
 import com.ethiotour.model.Booking;
 import com.ethiotour.model.Tour;
+import com.ethiotour.security.InputSanitizer;
 import com.ethiotour.util.EthiopianCalendar;
 import java.time.LocalDate;
 
@@ -64,7 +65,20 @@ public class BookingService {
     
     public Booking createBooking(int tourId, String customerName, String customerEmail, 
                                 String customerPhone, boolean isResident, int participantsCount) {
-        // Validate booking first
+        // Input validation
+        if (customerName == null || customerName.isBlank()) {
+            throw new IllegalArgumentException("Customer name cannot be empty");
+        }
+        String cleanEmail = InputSanitizer.sanitizeEmail(customerEmail);
+        if (!InputSanitizer.isValidEmail(cleanEmail)) {
+            throw new IllegalArgumentException("Invalid customer email address");
+        }
+        String cleanPhone = InputSanitizer.sanitizePhone(customerPhone);
+        if (!cleanPhone.isEmpty() && !InputSanitizer.isValidPhone(cleanPhone)) {
+            throw new IllegalArgumentException("Invalid customer phone number");
+        }
+
+        // Validate booking business rules
         BookingValidationResult validation = validateBooking(tourId, participantsCount, isResident);
         if (!validation.isValid()) {
             throw new IllegalArgumentException(validation.getMessage());
@@ -73,8 +87,9 @@ public class BookingService {
         // Calculate price
         double totalPrice = calculatePrice(tourId, participantsCount, isResident);
         
-        // Create booking
-        Booking booking = new Booking(tourId, customerName, customerEmail, customerPhone, isResident, participantsCount);
+        // Create booking with sanitized input
+        String cleanName = InputSanitizer.sanitizeString(customerName);
+        Booking booking = new Booking(tourId, cleanName, cleanEmail, cleanPhone, isResident, participantsCount);
         booking.setTotalPrice(totalPrice);
         
         // Add to database
