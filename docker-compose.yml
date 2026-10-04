@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5800:5800"
+    environment:
+      # GUI Settings
+      - APP_NAME=EthioTour Connect
+      # Database Connection Strings override
+      - DB_MODE=POSTGRESQL
+      - DB_POSTGRESQL_URL=jdbc:postgresql://db:5432/<your database>
+      - DB_POSTGRESQL_USERNAME=<your database username>
+      - DB_POSTGRESQL_PASSWORD=<your password>
+    volumes:
+      # Optional: Mount the internal sqlite database to persist local files if using SQLite mode
+      - app-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=<your database>
+      - POSTGRES_USER=<your database username>
+      - POSTGRES_PASSWORD=<your password>
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d <your database>" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  postgres-data:
+  app-data:

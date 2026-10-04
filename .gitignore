@@ -1,0 +1,16 @@
+build/
+*.class
+doc/BACKEND_INTEGRATION_SUMMARY.md
+doc/INTEGRATION_GUIDE.md
+doc/MSSQL_SETUP.md
+doc/QUICK_START.md
+lib/HikariCP-5.1.0.jar
+lib/slf4j-simple-2.0.7.jar
+lib/SLF4J-api-2.0.7.jar
+lib/sqlite-jdbc-3.45.1.0.jar
+compile.log
+src/main/resources/database.properties
+target/classes/database.properties
+target/classes/postgresql_seed_data.sql
+target/
+ethiotour.db
