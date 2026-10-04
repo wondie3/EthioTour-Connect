@@ -177,6 +177,19 @@ public class DatabaseConfig {
         }
     }
 
+    /**
+     * Masks sensitive string values (like passwords and API secrets) for secure log printing.
+     */
+    public static String maskSensitiveValue(String value) {
+        if (value == null || value.isBlank()) {
+            return "[NOT SET]";
+        }
+        if (value.length() <= 4) {
+            return "****";
+        }
+        return value.substring(0, 2) + "****" + value.substring(value.length() - 2);
+    }
+
     // Print configuration for debugging
     public static void printConfiguration() {
         System.out.println("\n=== EthioTour Database Configuration ===");
@@ -184,9 +197,11 @@ public class DatabaseConfig {
         if (getDatabaseMode() == DatabaseMode.POSTGRESQL) {
             System.out.println("URL: " + getPostgreSQLUrl());
             System.out.println("Username: " + getPostgreSQLUsername());
+            System.out.println("Password: " + maskSensitiveValue(getPostgreSQLPassword()));
             System.out.println("Connection Pool Max Size: " + getPoolMaxSize());
         }
         System.out.println("API Base URL: " + getAPIBaseUrl());
+        System.out.println("Chapa Secret Key: " + maskSensitiveValue(getChapaSecretKey()));
         System.out.println("=======================================\n");
     }
 }
