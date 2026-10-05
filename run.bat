@@ -48,6 +48,7 @@ javac -d build\classes -cp ".;lib\*" src\main\java\com\ethiotour\model\*.java ^
            src\main\java\com\ethiotour\util\*.java ^
            src\main\java\com\ethiotour\config\*.java ^
            src\main\java\com\ethiotour\service\*.java ^
+           src\main\java\com\ethiotour\security\*.java ^
            src\main\java\com\ethiotour\controller\*.java ^
            src\main\java\com\ethiotour\view\*.java ^
            src\main\java\com\ethiotour\EthioTourApp.java ^
