@@ -3,6 +3,7 @@ package com.ethiotour.view;
 import com.ethiotour.controller.MainController;
 import com.ethiotour.model.Booking;
 import com.ethiotour.model.Tour;
+import com.ethiotour.security.InputSanitizer;
 import com.ethiotour.service.ChapaPaymentResult;
 import com.ethiotour.service.IDatabaseService;
 import com.ethiotour.service.DatabaseServiceFactory;
@@ -221,9 +222,9 @@ public class BookingsView extends JFrame {
         String phone = customerPhoneField.getText().trim();
         String participants = participantsField.getText().trim();
 
-        boolean nameValid = name.length() >= 3;
-        boolean emailValid = email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
-        boolean phoneValid = phone.matches("^\\+?[0-9\\s\\-]{10,15}$");
+        boolean nameValid = name.length() >= 2;
+        boolean emailValid = InputSanitizer.isValidEmail(email);
+        boolean phoneValid = phone.isEmpty() || InputSanitizer.isValidPhone(phone);
         boolean partsValid = false;
         try {
             int p = Integer.parseInt(participants);
@@ -332,21 +333,21 @@ public class BookingsView extends JFrame {
                 return;
             }
 
-            // Enhanced Validation
-            if (customerName.length() < 3) {
-                JOptionPane.showMessageDialog(this, "Name must be at least 3 characters long.", 
+            // Enhanced Validation using central InputSanitizer
+            if (customerName.length() < 2) {
+                JOptionPane.showMessageDialog(this, "Name must be at least 2 characters long.",
                     "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            if (!customerEmail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            if (!InputSanitizer.isValidEmail(customerEmail)) {
                 JOptionPane.showMessageDialog(this, "Please enter a valid email address.", 
                     "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            if (!customerPhone.matches("^\\+?[0-9\\s\\-]{10,15}$")) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid phone number (10-15 digits).", 
+            if (!customerPhone.isEmpty() && !InputSanitizer.isValidPhone(customerPhone)) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid phone number.",
                     "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
