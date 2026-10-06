@@ -1,0 +1,33 @@
+name: Daily Security Scan & Automated Tests
+
+on:
+  schedule:
+    # Run automatically every day at 02:00 UTC
+    - cron: '0 2 * * *'
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  security-and-test-scan:
+    name: Continuous Security & Build Assessment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Build Application & Run Security Tests
+        run: mvn clean test --batch-mode
+
+      - name: Verify Package Assembly
+        run: mvn package -DskipTests --batch-mode
