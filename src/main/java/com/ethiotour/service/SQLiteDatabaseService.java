@@ -485,12 +485,13 @@ public class SQLiteDatabaseService implements IDatabaseService {
                     booking.setId(generatedKeys.getInt(1));
                 }
             }
-            
-            // Update tour participants
-            updateTourParticipants(booking.getTourId(), booking.getParticipantsCount());
         } catch (SQLException e) {
             System.err.println("Error adding booking: " + e.getMessage());
+            return;
         }
+
+        // Update tour participants
+        updateTourParticipants(booking.getTourId(), booking.getParticipantsCount());
     }
 
     @Override
