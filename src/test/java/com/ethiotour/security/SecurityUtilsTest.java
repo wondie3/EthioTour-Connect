@@ -48,6 +48,11 @@ public class SecurityUtilsTest {
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
         assertEquals("alert('xss')Hello World", cleaned);
+
+        // Test multiline HTML / script tag removal
+        String multilineInput = "<script\ntype=\"text/javascript\">\nalert('xss');\n</script>Safe Content";
+        String multilineCleaned = InputSanitizer.sanitizeString(multilineInput);
+        assertEquals("alert('xss');\nSafe Content", multilineCleaned);
     }
 
     @Test
