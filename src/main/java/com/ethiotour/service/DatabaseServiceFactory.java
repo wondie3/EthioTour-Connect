@@ -50,6 +50,10 @@ public class DatabaseServiceFactory {
         }
     }
 
+    public static void setTestDatabaseService(IDatabaseService testService) {
+        instance = testService;
+    }
+
     public static void resetInstance() {
         instance = null;
     }

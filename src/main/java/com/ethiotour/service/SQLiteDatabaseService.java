@@ -559,7 +559,7 @@ public class SQLiteDatabaseService implements IDatabaseService {
             rs.getString("name"),
             rs.getString("description"),
             rs.getString("region"),
-            rs.getInt("altitude"),
+            rs.getDouble("altitude"),
             rs.getString("protocol")
         );
     }

@@ -55,7 +55,7 @@ public class EthiopianCalendar {
         String[] ethiopianMonths = {
             "Meskerem", "Tekemt", "Hidar", "Tahsas", 
             "Tir", "Yekatit", "Megabit", "Miyazya", 
-            "Ginbot", "Sene", "Hamle", "Nehase"
+            "Ginbot", "Sene", "Hamle", "Nehase", "Pagume"
         };
         
         return ethiopianDate[2] + " " + ethiopianMonths[ethiopianDate[1] - 1] + " " + ethiopianDate[0];
