@@ -42,7 +42,8 @@ public class DatabaseConfig {
     }
 
     private static void setDefaults() {
-        properties.setProperty("db.mode", "POSTGRESQL");
+        properties.setProperty("db.mode", "SQLITE");
+        properties.setProperty("db.sqlite.path", "ethiotour.db");
         properties.setProperty("db.postgresql.url", "jdbc:postgresql://localhost:5432/swing_app_db");
         properties.setProperty("db.postgresql.username", "postgres");
         properties.setProperty("db.postgresql.password", "13579.,ad");
