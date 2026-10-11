@@ -36,6 +36,7 @@ public class PasswordHasher {
             PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
             byte[] hash = factory.generateSecret(spec).getEncoded();
+            spec.clearPassword();
             return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException("Error hashing password", e);
@@ -73,6 +74,7 @@ public class PasswordHasher {
             PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, expectedHash.length * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
             byte[] computedHash = factory.generateSecret(spec).getEncoded();
+            spec.clearPassword();
 
             return constantTimeEquals(expectedHash, computedHash);
         } catch (Exception e) {
