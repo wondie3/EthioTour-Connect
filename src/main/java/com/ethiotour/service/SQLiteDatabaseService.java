@@ -162,13 +162,18 @@ public class SQLiteDatabaseService implements IDatabaseService {
 
         System.out.println("[INFO] Seeding database from seed_data.sql...");
         
-        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("resources/seed_data.sql");
-             java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in))) {
-            
-            if (in == null) {
-                System.err.println("[ERROR] seed_data.sql not found in classpath!");
-                return;
-            }
+        java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("seed_data.sql");
+        if (in == null) {
+            in = getClass().getClassLoader().getResourceAsStream("resources/seed_data.sql");
+        }
+
+        if (in == null) {
+            System.err.println("[ERROR] seed_data.sql not found in classpath!");
+            return;
+        }
+
+        try (java.io.InputStream stream = in;
+             java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(stream))) {
 
             StringBuilder sql = new StringBuilder();
             String line;
