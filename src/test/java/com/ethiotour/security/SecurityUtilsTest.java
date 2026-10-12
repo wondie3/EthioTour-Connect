@@ -65,4 +65,39 @@ public class SecurityUtilsTest {
         assertFalse(InputSanitizer.isValidPhone("123"));
         assertEquals("+251911223344", InputSanitizer.sanitizePhone("+251 911-223-344"));
     }
+
+    @Test
+    public void testBookingCancellationFreesTourSlots() {
+        com.ethiotour.service.IDatabaseService db = com.ethiotour.service.DatabaseServiceFactory.getDatabaseService();
+        com.ethiotour.service.BookingService bookingService = new com.ethiotour.service.BookingService();
+
+        java.util.List<com.ethiotour.model.Tour> tours = db.getAllTours();
+        assertFalse(tours.isEmpty(), "Expected tours in in-memory database");
+
+        com.ethiotour.model.Tour tour = tours.get(0);
+        tour.setStartDate(java.time.LocalDate.now().plusDays(30));
+        tour.setEndDate(java.time.LocalDate.now().plusDays(35));
+        db.updateTour(tour);
+
+        int initialParticipants = tour.getCurrentParticipants();
+
+        com.ethiotour.model.Booking booking = bookingService.createBooking(
+            tour.getId(), "Test User", "testuser@ethiotour.com", "+251911000000", true, 2
+        );
+
+        com.ethiotour.model.Tour tourAfterBooking = db.getTourById(tour.getId());
+        assertEquals(initialParticipants + 2, tourAfterBooking.getCurrentParticipants());
+
+        boolean cancelled = bookingService.cancelBooking(booking.getId());
+        assertTrue(cancelled);
+
+        com.ethiotour.model.Tour tourAfterCancellation = db.getTourById(tour.getId());
+        assertEquals(initialParticipants, tourAfterCancellation.getCurrentParticipants());
+
+        com.ethiotour.model.Booking cancelledBooking = db.getBookingById(booking.getId());
+        assertEquals(com.ethiotour.model.Booking.BookingStatus.CANCELLED, cancelledBooking.getStatus());
+
+        // Attempting to cancel already cancelled booking should return false
+        assertFalse(bookingService.cancelBooking(booking.getId()));
+    }
 }
