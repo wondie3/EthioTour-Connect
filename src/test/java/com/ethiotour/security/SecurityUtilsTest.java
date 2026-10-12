@@ -75,6 +75,10 @@ public class SecurityUtilsTest {
         assertFalse(tours.isEmpty(), "Expected tours in in-memory database");
 
         com.ethiotour.model.Tour tour = tours.get(0);
+        tour.setStartDate(java.time.LocalDate.now().plusDays(30));
+        tour.setEndDate(java.time.LocalDate.now().plusDays(35));
+        db.updateTour(tour);
+
         int initialParticipants = tour.getCurrentParticipants();
 
         com.ethiotour.model.Booking booking = bookingService.createBooking(
