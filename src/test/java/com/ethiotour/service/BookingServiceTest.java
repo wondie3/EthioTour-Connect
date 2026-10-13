@@ -24,23 +24,29 @@ public class BookingServiceTest {
 
     @Test
     public void testCreateAndCancelBookingUpdatesParticipants() {
-        List<Tour> tours = dbService.getAllTours();
-        assertFalse(tours.isEmpty(), "Database should contain seeded tours");
+        List<Destination> destinations = dbService.getAllDestinations();
+        assertFalse(destinations.isEmpty(), "Database should contain seeded destinations");
 
-        // Pick a tour that is available in the future from seeded data
-        Tour tour = null;
-        for (Tour t : tours) {
-            if (t.getStartDate().isAfter(LocalDate.now())) {
-                tour = t;
-                break;
-            }
-        }
-        assertNotNull(tour, "Should find a future tour in seeded data");
+        Destination dest = destinations.get(0);
 
-        int initialParticipants = tour.getCurrentParticipants();
+        Tour futureTour = new Tour(
+            0,
+            "Test Future Tour",
+            "A test tour in the future",
+            dest,
+            LocalDate.now().plusMonths(1),
+            LocalDate.now().plusMonths(1).plusDays(5),
+            20,
+            1000.0,
+            2000.0
+        );
+        dbService.addTour(futureTour);
+        assertTrue(futureTour.getId() > 0, "Tour should have an assigned ID after insertion");
+
+        int initialParticipants = futureTour.getCurrentParticipants();
 
         Booking booking = bookingService.createBooking(
-            tour.getId(),
+            futureTour.getId(),
             "Abebe Bikila",
             "abebe@example.com",
             "+251911000000",
@@ -52,7 +58,7 @@ public class BookingServiceTest {
         assertTrue(booking.getId() > 0);
         assertEquals(Booking.BookingStatus.PENDING_CONFIRMATION, booking.getStatus());
 
-        Tour tourAfterBooking = dbService.getTourById(tour.getId());
+        Tour tourAfterBooking = dbService.getTourById(futureTour.getId());
         assertEquals(initialParticipants + 2, tourAfterBooking.getCurrentParticipants());
 
         boolean cancelled = bookingService.cancelBooking(booking.getId());
@@ -61,7 +67,7 @@ public class BookingServiceTest {
         Booking cancelledBooking = dbService.getBookingById(booking.getId());
         assertEquals(Booking.BookingStatus.CANCELLED, cancelledBooking.getStatus());
 
-        Tour tourAfterCancellation = dbService.getTourById(tour.getId());
+        Tour tourAfterCancellation = dbService.getTourById(futureTour.getId());
         assertEquals(initialParticipants, tourAfterCancellation.getCurrentParticipants());
     }
 
@@ -73,7 +79,7 @@ public class BookingServiceTest {
         Destination dest = destinations.get(0);
 
         Tour pastTour = new Tour(
-            999,
+            0,
             "Past Tour",
             "Past Historical tour",
             dest,
@@ -83,6 +89,8 @@ public class BookingServiceTest {
             500.0,
             1000.0
         );
+        dbService.addTour(pastTour);
+        assertTrue(pastTour.getId() > 0, "Past tour should have an assigned ID");
 
         BookingService.BookingValidationResult result = bookingService.validateBooking(pastTour.getId(), 2, true);
         assertFalse(result.isValid());
