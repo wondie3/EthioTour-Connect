@@ -14,6 +14,11 @@ public class SecurityUtilsTest {
         assertTrue(hash.contains(":"));
         assertTrue(PasswordHasher.verifyPassword(password, hash));
         assertFalse(PasswordHasher.verifyPassword("wrongPassword", hash));
+
+        char[] charPassword = "securePassword123!".toCharArray();
+        String hashFromCharArray = PasswordHasher.hashPassword(charPassword, PasswordHasher.generateSalt());
+        assertNotNull(hashFromCharArray);
+        assertTrue(PasswordHasher.verifyPassword("securePassword123!".toCharArray(), hashFromCharArray));
     }
 
     @Test
