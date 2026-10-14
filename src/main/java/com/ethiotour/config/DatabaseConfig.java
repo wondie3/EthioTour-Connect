@@ -55,7 +55,15 @@ public class DatabaseConfig {
     }
 
     public static String getProperty(String key, String defaultValue) {
-        // Try to read from environment variables first (e.g. DB_POSTGRESQL_URL)
+        // Try system properties first, then environment variables (e.g. DB_POSTGRESQL_URL)
+        String sysProp = System.getProperty(key);
+        if (sysProp == null) {
+            sysProp = System.getProperty(key.toUpperCase().replace('.', '_'));
+        }
+        if (sysProp != null && !sysProp.trim().isEmpty()) {
+            return sysProp;
+        }
+
         String envKey = key.toUpperCase().replace('.', '_');
         String envProp = System.getenv(envKey);
         if (envProp != null && !envProp.trim().isEmpty()) {
