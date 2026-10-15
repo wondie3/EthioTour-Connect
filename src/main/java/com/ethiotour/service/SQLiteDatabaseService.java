@@ -162,7 +162,7 @@ public class SQLiteDatabaseService implements IDatabaseService {
 
         System.out.println("[INFO] Seeding database from seed_data.sql...");
         
-        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("resources/seed_data.sql");
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("seed_data.sql");
              java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in))) {
             
             if (in == null) {
@@ -487,7 +487,7 @@ public class SQLiteDatabaseService implements IDatabaseService {
             }
             
             // Update tour participants
-            updateTourParticipants(booking.getTourId(), booking.getParticipantsCount());
+            updateTourParticipants(conn, booking.getTourId(), booking.getParticipantsCount());
         } catch (SQLException e) {
             System.err.println("Error adding booking: " + e.getMessage());
         }
@@ -539,11 +539,10 @@ public class SQLiteDatabaseService implements IDatabaseService {
         return bookings;
     }
 
-    private void updateTourParticipants(int tourId, int participantCount) {
+    private void updateTourParticipants(Connection conn, int tourId, int participantCount) {
         String query = "UPDATE Tours SET currentParticipants = currentParticipants + ? WHERE id = ?";
         
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             
             pstmt.setInt(1, participantCount);
             pstmt.setInt(2, tourId);
