@@ -13,6 +13,7 @@ public class SecurityUtilsTest {
         assertNotNull(hash);
         assertTrue(hash.contains(":"));
         assertTrue(PasswordHasher.verifyPassword(password, hash));
+        assertTrue(PasswordHasher.verifyPassword(password.toCharArray(), hash));
         assertFalse(PasswordHasher.verifyPassword("wrongPassword", hash));
     }
 
