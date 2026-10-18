@@ -25,15 +25,20 @@ public class LoginRateLimiter {
         this.lockoutDurationSeconds = lockoutDurationSeconds;
     }
 
+    private String normalizeKey(String key) {
+        return key == null ? null : key.trim().toLowerCase();
+    }
+
     /**
      * Checks if the given key (e.g. username or IP) is locked out due to too many failed attempts.
      */
     public boolean isLockedOut(String key) {
-        if (key == null) {
+        String normalizedKey = normalizeKey(key);
+        if (normalizedKey == null) {
             return false;
         }
 
-        AttemptInfo info = attemptMap.get(key);
+        AttemptInfo info = attemptMap.get(normalizedKey);
         if (info == null) {
             return false;
         }
@@ -44,7 +49,7 @@ public class LoginRateLimiter {
                 return true;
             } else {
                 // Lockout period expired; reset attempt count
-                attemptMap.remove(key);
+                attemptMap.remove(normalizedKey);
                 return false;
             }
         }
@@ -55,12 +60,13 @@ public class LoginRateLimiter {
      * Records a failed login attempt for the given key.
      */
     public void recordFailedAttempt(String key) {
-        if (key == null) {
+        String normalizedKey = normalizeKey(key);
+        if (normalizedKey == null) {
             return;
         }
 
         long now = Instant.now().getEpochSecond();
-        attemptMap.compute(key, (k, existing) -> {
+        attemptMap.compute(normalizedKey, (k, existing) -> {
             if (existing == null || (now - existing.lastAttemptTime >= lockoutDurationSeconds)) {
                 return new AttemptInfo(1, now);
             }
@@ -72,8 +78,9 @@ public class LoginRateLimiter {
      * Records a successful login attempt, resetting failure records for the given key.
      */
     public void recordSuccess(String key) {
-        if (key != null) {
-            attemptMap.remove(key);
+        String normalizedKey = normalizeKey(key);
+        if (normalizedKey != null) {
+            attemptMap.remove(normalizedKey);
         }
     }
 
@@ -82,11 +89,12 @@ public class LoginRateLimiter {
      * Returns 0 if not locked out.
      */
     public long getRemainingLockoutSeconds(String key) {
-        if (key == null) {
+        String normalizedKey = normalizeKey(key);
+        if (normalizedKey == null) {
             return 0;
         }
 
-        AttemptInfo info = attemptMap.get(key);
+        AttemptInfo info = attemptMap.get(normalizedKey);
         if (info == null || info.attempts < maxAttempts) {
             return 0;
         }
