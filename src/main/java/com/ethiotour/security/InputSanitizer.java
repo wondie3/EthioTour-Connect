@@ -18,12 +18,18 @@ public class InputSanitizer {
 
     /**
      * Sanitizes string input by stripping HTML tags and trimming whitespace.
+     * Uses a loop to handle nested/bypass HTML tags (e.g. <scr<script>ipt>).
      */
     public static String sanitizeString(String input) {
         if (input == null) {
             return "";
         }
-        String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
+        String stripped = input;
+        String prev;
+        do {
+            prev = stripped;
+            stripped = HTML_TAG_PATTERN.matcher(prev).replaceAll("");
+        } while (!stripped.equals(prev));
         return stripped.trim();
     }
 
