@@ -11,12 +11,21 @@ public class BookingService {
     private ChapaPaymentService chapaPaymentService;
     
     public BookingService() {
-        this.dbService = DatabaseServiceFactory.getDatabaseService();
+        this(null);
+    }
+
+    public BookingService(IDatabaseService dbService) {
+        this.dbService = dbService;
         this.chapaPaymentService = new ChapaPaymentService();
+    }
+
+    private IDatabaseService getDbService() {
+        return dbService != null ? dbService : DatabaseServiceFactory.getDatabaseService();
     }
     
     public BookingValidationResult validateBooking(int tourId, int participantsCount, boolean isResident) {
-        Tour tour = dbService.getTourById(tourId);
+        IDatabaseService currentDbService = getDbService();
+        Tour tour = currentDbService.getTourById(tourId);
         if (tour == null) {
             return new BookingValidationResult(false, "Tour not found");
         }
@@ -47,7 +56,8 @@ public class BookingService {
     }
     
     public double calculatePrice(int tourId, int participantsCount, boolean isResident) {
-        Tour tour = dbService.getTourById(tourId);
+        IDatabaseService currentDbService = getDbService();
+        Tour tour = currentDbService.getTourById(tourId);
         if (tour == null) {
             return 0;
         }
@@ -93,13 +103,15 @@ public class BookingService {
         booking.setTotalPrice(totalPrice);
         
         // Add to database
-        dbService.addBooking(booking);
+        IDatabaseService currentDbService = getDbService();
+        currentDbService.addBooking(booking);
         
         return booking;
     }
     
     public boolean confirmBooking(int bookingId, String paymentMethod, String paymentReference) {
-        Booking booking = dbService.getBookingById(bookingId);
+        IDatabaseService currentDbService = getDbService();
+        Booking booking = currentDbService.getBookingById(bookingId);
         if (booking == null) {
             return false;
         }
@@ -112,12 +124,13 @@ public class BookingService {
         booking.setPaymentReference(paymentReference);
         booking.updateStatus(Booking.BookingStatus.CONFIRMED);
         
-        dbService.updateBooking(booking);
+        currentDbService.updateBooking(booking);
         return true;
     }
     
     public boolean processPayment(int bookingId) {
-        Booking booking = dbService.getBookingById(bookingId);
+        IDatabaseService currentDbService = getDbService();
+        Booking booking = currentDbService.getBookingById(bookingId);
         if (booking == null) {
             return false;
         }
@@ -128,13 +141,14 @@ public class BookingService {
         
         // Simulate payment processing
         booking.updateStatus(Booking.BookingStatus.PAID);
-        dbService.updateBooking(booking);
+        currentDbService.updateBooking(booking);
         
         return true;
     }
 
     public ChapaPaymentResult startChapaCheckout(int bookingId) {
-        Booking booking = dbService.getBookingById(bookingId);
+        IDatabaseService currentDbService = getDbService();
+        Booking booking = currentDbService.getBookingById(bookingId);
         if (booking == null) {
             return ChapaPaymentResult.failed("Booking not found.", null, null);
         }
@@ -153,13 +167,14 @@ public class BookingService {
             booking.setPaymentMethod("Chapa");
             booking.setPaymentReference(result.getTxRef());
             booking.updateStatus(Booking.BookingStatus.CONFIRMED);
-            dbService.updateBooking(booking);
+            currentDbService.updateBooking(booking);
         }
         return result;
     }
 
     public ChapaPaymentResult verifyChapaPayment(int bookingId) {
-        Booking booking = dbService.getBookingById(bookingId);
+        IDatabaseService currentDbService = getDbService();
+        Booking booking = currentDbService.getBookingById(bookingId);
         if (booking == null) {
             return ChapaPaymentResult.failed("Booking not found.", null, null);
         }
@@ -168,13 +183,14 @@ public class BookingService {
         if (result.isSuccess()) {
             booking.setPaymentMethod("Chapa");
             booking.updateStatus(Booking.BookingStatus.PAID);
-            dbService.updateBooking(booking);
+            currentDbService.updateBooking(booking);
         }
         return result;
     }
     
     public boolean cancelBooking(int bookingId) {
-        Booking booking = dbService.getBookingById(bookingId);
+        IDatabaseService currentDbService = getDbService();
+        Booking booking = currentDbService.getBookingById(bookingId);
         if (booking == null) {
             return false;
         }
@@ -187,13 +203,13 @@ public class BookingService {
         booking.updateStatus(Booking.BookingStatus.CANCELLED);
         
         // Update tour participant count
-        Tour tour = dbService.getTourById(booking.getTourId());
+        Tour tour = currentDbService.getTourById(booking.getTourId());
         if (tour != null) {
             tour.setCurrentParticipants(tour.getCurrentParticipants() - booking.getParticipantsCount());
-            dbService.updateTour(tour);
+            currentDbService.updateTour(tour);
         }
         
-        dbService.updateBooking(booking);
+        currentDbService.updateBooking(booking);
         return true;
     }
     
