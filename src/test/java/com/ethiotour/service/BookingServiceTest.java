@@ -13,8 +13,8 @@ public class BookingServiceTest {
 
     @Test
     public void testCancelBookingUpdatesTourParticipants() {
-        DatabaseServiceFactory.resetInstance();
         System.setProperty("db.mode", "IN_MEMORY");
+        DatabaseServiceFactory.resetInstance();
         IDatabaseService dbService = DatabaseServiceFactory.getDatabaseService();
         BookingService bookingService = new BookingService();
 
