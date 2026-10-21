@@ -190,6 +190,7 @@ public class BookingService {
         Tour tour = dbService.getTourById(booking.getTourId());
         if (tour != null) {
             tour.setCurrentParticipants(tour.getCurrentParticipants() - booking.getParticipantsCount());
+            dbService.updateTour(tour);
         }
         
         dbService.updateBooking(booking);
