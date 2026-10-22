@@ -47,7 +47,16 @@ public class SecurityUtilsTest {
         String dirtyInput = "<script>alert('xss')</script>Hello World";
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
-        assertEquals("alert('xss')Hello World", cleaned);
+        assertEquals("alert(&#x27;xss&#x27;)Hello World", cleaned);
+    }
+
+    @Test
+    public void testInputSanitizerUnclosedTagsAndSpecialChars() {
+        String unclosedInput = "<script src=\"http://evil.com/xss.js\" Hello & Welcome";
+        String cleaned = InputSanitizer.sanitizeString(unclosedInput);
+
+        assertFalse(cleaned.contains("<script"));
+        assertTrue(cleaned.contains("&amp;"));
     }
 
     @Test
