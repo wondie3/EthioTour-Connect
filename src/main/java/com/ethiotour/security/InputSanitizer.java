@@ -17,13 +17,21 @@ public class InputSanitizer {
         Pattern.compile("<[^>]*>");
 
     /**
-     * Sanitizes string input by stripping HTML tags and trimming whitespace.
+     * Sanitizes string input by stripping HTML tags, escaping special HTML control characters,
+     * and trimming whitespace to prevent XSS and HTML injection.
      */
     public static String sanitizeString(String input) {
         if (input == null) {
             return "";
         }
+        // First strip balanced/well-formed HTML tags
         String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
+        // Escape remaining sensitive HTML control characters (neutralizes unclosed tags too)
+        stripped = stripped.replace("&", "&amp;")
+                            .replace("<", "&lt;")
+                            .replace(">", "&gt;")
+                            .replace("\"", "&quot;")
+                            .replace("'", "&#x27;");
         return stripped.trim();
     }
 
