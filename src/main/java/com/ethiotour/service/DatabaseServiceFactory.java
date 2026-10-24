@@ -20,9 +20,10 @@ public class DatabaseServiceFactory {
         switch (mode) {
             case POSTGRESQL:
                 try {
-                    instance = PostgreSQLDatabaseService.getInstance();
+                    Class<?> clazz = Class.forName("com.ethiotour.service.PostgreSQLDatabaseService");
+                    instance = (IDatabaseService) clazz.getMethod("getInstance").invoke(null);
                     System.out.println("[OK] PostgreSQL database service initialized");
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     System.err.println("[ERROR] Failed to initialize PostgreSQL, falling back to SQLITE: " + e.getMessage());
                     instance = createSQLiteService();
                 }
@@ -43,8 +44,9 @@ public class DatabaseServiceFactory {
 
     private static IDatabaseService createSQLiteService() {
         try {
-            return SQLiteDatabaseService.getInstance();
-        } catch (Exception e) {
+            Class<?> clazz = Class.forName("com.ethiotour.service.SQLiteDatabaseService");
+            return (IDatabaseService) clazz.getMethod("getInstance").invoke(null);
+        } catch (Throwable e) {
             System.err.println("[ERROR] Failed to initialize SQLite, falling back to IN_MEMORY: " + e.getMessage());
             return DatabaseService.getInstance();
         }

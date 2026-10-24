@@ -32,13 +32,18 @@ public class PasswordHasher {
      * Hashes a password with a given salt using PBKDF2WithHmacSHA256.
      */
     public static String hashPassword(char[] password, byte[] salt) {
+        if (password == null) {
+            throw new IllegalArgumentException("Password cannot be null");
+        }
+        PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8);
         try {
-            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
             byte[] hash = factory.generateSecret(spec).getEncoded();
             return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException("Error hashing password", e);
+        } finally {
+            spec.clearPassword();
         }
     }
 
@@ -71,10 +76,13 @@ public class PasswordHasher {
             byte[] expectedHash = Base64.getDecoder().decode(parts[1]);
 
             PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, expectedHash.length * 8);
-            SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
-            byte[] computedHash = factory.generateSecret(spec).getEncoded();
-
-            return constantTimeEquals(expectedHash, computedHash);
+            try {
+                SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
+                byte[] computedHash = factory.generateSecret(spec).getEncoded();
+                return constantTimeEquals(expectedHash, computedHash);
+            } finally {
+                spec.clearPassword();
+            }
         } catch (Exception e) {
             return false;
         }

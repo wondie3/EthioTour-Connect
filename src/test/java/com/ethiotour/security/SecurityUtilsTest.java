@@ -1,7 +1,7 @@
 package com.ethiotour.security;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class SecurityUtilsTest {
 
@@ -16,11 +16,11 @@ public class SecurityUtilsTest {
         assertFalse(PasswordHasher.verifyPassword("wrongPassword", hash));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testPasswordHasherNullAndEmpty() {
         assertFalse(PasswordHasher.verifyPassword((String) null, "somehash"));
         assertFalse(PasswordHasher.verifyPassword("password", null));
-        assertThrows(IllegalArgumentException.class, () -> PasswordHasher.hashPassword((String) null));
+        PasswordHasher.hashPassword((String) null);
     }
 
     @Test

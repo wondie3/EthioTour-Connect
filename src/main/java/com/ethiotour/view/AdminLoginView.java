@@ -194,7 +194,14 @@ public class AdminLoginView extends JFrame {
             return;
         }
 
-        boolean valid = ADMIN_USERNAME.equalsIgnoreCase(username) && PasswordHasher.verifyPassword(password, ADMIN_PASSWORD_HASH);
+        boolean valid = false;
+        try {
+            valid = ADMIN_USERNAME.equalsIgnoreCase(username) && PasswordHasher.verifyPassword(password, ADMIN_PASSWORD_HASH);
+        } finally {
+            if (password != null) {
+                java.util.Arrays.fill(password, '\0');
+            }
+        }
 
         if (valid) {
             rateLimiter.recordSuccess(username);
