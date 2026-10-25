@@ -33,22 +33,23 @@ public class LoginRateLimiter {
             return false;
         }
 
-        AttemptInfo info = attemptMap.get(key);
-        if (info == null) {
-            return false;
-        }
+        long now = Instant.now().getEpochSecond();
+        Boolean[] lockedOut = new Boolean[] { false };
 
-        if (info.attempts >= maxAttempts) {
-            long now = Instant.now().getEpochSecond();
-            if (now - info.lastAttemptTime < lockoutDurationSeconds) {
-                return true;
-            } else {
-                // Lockout period expired; reset attempt count
-                attemptMap.remove(key);
-                return false;
+        attemptMap.computeIfPresent(key, (k, info) -> {
+            if (info.attempts >= maxAttempts) {
+                if (now - info.lastAttemptTime < lockoutDurationSeconds) {
+                    lockedOut[0] = true;
+                    return info;
+                } else {
+                    // Lockout expired; remove entry
+                    return null;
+                }
             }
-        }
-        return false;
+            return info;
+        });
+
+        return lockedOut[0];
     }
 
     /**
