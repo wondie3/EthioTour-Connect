@@ -28,7 +28,18 @@ public class LoginRateLimiter {
     /**
      * Checks if the given key (e.g. username or IP) is locked out due to too many failed attempts.
      */
+    private String normalizeKey(String key) {
+        if (key == null) {
+            return null;
+        }
+        return key.trim().toLowerCase();
+    }
+
+    /**
+     * Checks if the given key (e.g. username or IP) is locked out due to too many failed attempts.
+     */
     public boolean isLockedOut(String key) {
+        key = normalizeKey(key);
         if (key == null) {
             return false;
         }
@@ -55,6 +66,7 @@ public class LoginRateLimiter {
      * Records a failed login attempt for the given key.
      */
     public void recordFailedAttempt(String key) {
+        key = normalizeKey(key);
         if (key == null) {
             return;
         }
@@ -72,6 +84,7 @@ public class LoginRateLimiter {
      * Records a successful login attempt, resetting failure records for the given key.
      */
     public void recordSuccess(String key) {
+        key = normalizeKey(key);
         if (key != null) {
             attemptMap.remove(key);
         }
@@ -82,6 +95,7 @@ public class LoginRateLimiter {
      * Returns 0 if not locked out.
      */
     public long getRemainingLockoutSeconds(String key) {
+        key = normalizeKey(key);
         if (key == null) {
             return 0;
         }
