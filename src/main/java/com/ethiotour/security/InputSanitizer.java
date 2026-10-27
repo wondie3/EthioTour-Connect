@@ -23,7 +23,8 @@ public class InputSanitizer {
         if (input == null) {
             return "";
         }
-        String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
+        String noNulls = input.replace("\0", "");
+        String stripped = HTML_TAG_PATTERN.matcher(noNulls).replaceAll("");
         return stripped.trim();
     }
 

@@ -98,7 +98,7 @@ public class EthiopianCalendar {
 
     private static long daysBeforeEthiopianYear(int ethiopianYear) {
         long previousYears = ethiopianYear - 1L;
-        return previousYears * 365 + previousYears / 4;
+        return previousYears * 365 + ethiopianYear / 4;
     }
 
     private static void validateEthiopianDate(int year, int month, int day) {

@@ -33,7 +33,7 @@ public class LoginRateLimiter {
             return false;
         }
 
-        AttemptInfo info = attemptMap.get(key);
+        AttemptInfo info = attemptMap.get(key.toLowerCase());
         if (info == null) {
             return false;
         }
@@ -59,8 +59,9 @@ public class LoginRateLimiter {
             return;
         }
 
+        String normalizedKey = key.toLowerCase();
         long now = Instant.now().getEpochSecond();
-        attemptMap.compute(key, (k, existing) -> {
+        attemptMap.compute(normalizedKey, (k, existing) -> {
             if (existing == null || (now - existing.lastAttemptTime >= lockoutDurationSeconds)) {
                 return new AttemptInfo(1, now);
             }
@@ -73,7 +74,7 @@ public class LoginRateLimiter {
      */
     public void recordSuccess(String key) {
         if (key != null) {
-            attemptMap.remove(key);
+            attemptMap.remove(key.toLowerCase());
         }
     }
 
@@ -86,7 +87,7 @@ public class LoginRateLimiter {
             return 0;
         }
 
-        AttemptInfo info = attemptMap.get(key);
+        AttemptInfo info = attemptMap.get(key.toLowerCase());
         if (info == null || info.attempts < maxAttempts) {
             return 0;
         }

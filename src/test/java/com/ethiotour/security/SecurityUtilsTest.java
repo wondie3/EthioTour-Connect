@@ -1,7 +1,7 @@
 package com.ethiotour.security;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class SecurityUtilsTest {
 
@@ -20,31 +20,36 @@ public class SecurityUtilsTest {
     public void testPasswordHasherNullAndEmpty() {
         assertFalse(PasswordHasher.verifyPassword((String) null, "somehash"));
         assertFalse(PasswordHasher.verifyPassword("password", null));
-        assertThrows(IllegalArgumentException.class, () -> PasswordHasher.hashPassword((String) null));
+        try {
+            PasswordHasher.hashPassword((String) null);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            // Expected
+        }
     }
 
     @Test
-    public void testLoginRateLimiterLockout() {
+    public void testLoginRateLimiterLockoutAndCaseInsensitivity() {
         LoginRateLimiter rateLimiter = new LoginRateLimiter(3, 10);
         String username = "adminUser";
 
-        assertFalse(rateLimiter.isLockedOut(username));
+        assertFalse(rateLimiter.isLockedOut("ADMINUSER"));
 
-        rateLimiter.recordFailedAttempt(username);
-        rateLimiter.recordFailedAttempt(username);
-        assertFalse(rateLimiter.isLockedOut(username));
+        rateLimiter.recordFailedAttempt("AdminUser");
+        rateLimiter.recordFailedAttempt("ADMINUSER");
+        assertFalse(rateLimiter.isLockedOut("adminuser"));
 
-        rateLimiter.recordFailedAttempt(username);
-        assertTrue(rateLimiter.isLockedOut(username));
-        assertTrue(rateLimiter.getRemainingLockoutSeconds(username) > 0);
+        rateLimiter.recordFailedAttempt("adminUser");
+        assertTrue(rateLimiter.isLockedOut("ADMINUSER"));
+        assertTrue(rateLimiter.getRemainingLockoutSeconds("AdminUser") > 0);
 
-        rateLimiter.recordSuccess(username);
-        assertFalse(rateLimiter.isLockedOut(username));
+        rateLimiter.recordSuccess("adminUSER");
+        assertFalse(rateLimiter.isLockedOut("adminuser"));
     }
 
     @Test
     public void testInputSanitizerStringAndTagRemoval() {
-        String dirtyInput = "<script>alert('xss')</script>Hello World";
+        String dirtyInput = "<script>alert('xss')</script>\0Hello World";
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
         assertEquals("alert('xss')Hello World", cleaned);
