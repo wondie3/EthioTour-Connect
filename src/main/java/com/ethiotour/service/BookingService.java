@@ -11,8 +11,16 @@ public class BookingService {
     private ChapaPaymentService chapaPaymentService;
     
     public BookingService() {
-        this.dbService = DatabaseServiceFactory.getDatabaseService();
-        this.chapaPaymentService = new ChapaPaymentService();
+        this(DatabaseServiceFactory.getDatabaseService(), new ChapaPaymentService());
+    }
+
+    public BookingService(IDatabaseService dbService) {
+        this(dbService, new ChapaPaymentService());
+    }
+
+    public BookingService(IDatabaseService dbService, ChapaPaymentService chapaPaymentService) {
+        this.dbService = dbService;
+        this.chapaPaymentService = chapaPaymentService;
     }
     
     public BookingValidationResult validateBooking(int tourId, int participantsCount, boolean isResident) {
@@ -189,7 +197,9 @@ public class BookingService {
         // Update tour participant count
         Tour tour = dbService.getTourById(booking.getTourId());
         if (tour != null) {
-            tour.setCurrentParticipants(tour.getCurrentParticipants() - booking.getParticipantsCount());
+            int newCount = Math.max(0, tour.getCurrentParticipants() - booking.getParticipantsCount());
+            tour.setCurrentParticipants(newCount);
+            dbService.updateTour(tour);
         }
         
         dbService.updateBooking(booking);
