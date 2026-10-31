@@ -48,6 +48,11 @@ public class SecurityUtilsTest {
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
         assertEquals("alert('xss')Hello World", cleaned);
+
+        // Recursive tag stripping test
+        String nestedTags = "<scr<script>ipt>alert('nested')</script>";
+        String cleanedNested = InputSanitizer.sanitizeString(nestedTags);
+        assertEquals("alert('nested')", cleanedNested);
     }
 
     @Test
