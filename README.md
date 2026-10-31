@@ -11,18 +11,21 @@ It was developed as a practical software project to demonstrate Java programming
 ## Features
 
 ### 🏠 Dashboard
+
 - Overview of the tourism management system
 - Quick access to major application modules
 - Ethiopian and Gregorian date information
 - Application status and summary information
 
 ### 📍 Destination Management
+
 - Add, view, edit, and delete destinations
 - Store destination region and altitude
 - Maintain descriptions and entrance protocol information
 - Manage destination status
 
 ### 🚌 Tour Management
+
 - Create and manage tour packages
 - Assign destinations to tours
 - Set travel dates
@@ -31,6 +34,7 @@ It was developed as a practical software project to demonstrate Java programming
 - Track tour availability
 
 ### 📋 Booking Management
+
 - Create customer bookings
 - Store customer contact information
 - Select tours and participant numbers
@@ -39,18 +43,21 @@ It was developed as a practical software project to demonstrate Java programming
 - Track booking status
 
 ### 💳 Payment Management
+
 - Record payment information
 - Support simulated payment processing
 - Store payment references
 - Support Chapa test-payment integration
 
 ### 🇪🇹 Ethiopian Calendar
+
 - Display Ethiopian calendar dates
 - Convert between Ethiopian and Gregorian dates
 - Display Ethiopian holidays
 - Provide tourism season information
 
 ### 🔐 Application Security
+
 - Password hashing
 - Login rate limiting
 - Input sanitization
@@ -151,3 +158,8 @@ EthioTour-connect/
 ├── pom.xml
 ├── README.md
 └── run.bat
+## Development
+
+EthioTour Connect is developed as a Java-based tourism platform
+designed to help users explore Ethiopian destinations and manage tours.
+```
