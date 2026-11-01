@@ -66,7 +66,8 @@ public class BookingService {
     public Booking createBooking(int tourId, String customerName, String customerEmail, 
                                 String customerPhone, boolean isResident, int participantsCount) {
         // Input validation
-        if (customerName == null || customerName.isBlank()) {
+        String cleanName = InputSanitizer.sanitizeString(customerName);
+        if (cleanName.isBlank()) {
             throw new IllegalArgumentException("Customer name cannot be empty");
         }
         String cleanEmail = InputSanitizer.sanitizeEmail(customerEmail);
@@ -88,7 +89,6 @@ public class BookingService {
         double totalPrice = calculatePrice(tourId, participantsCount, isResident);
         
         // Create booking with sanitized input
-        String cleanName = InputSanitizer.sanitizeString(customerName);
         Booking booking = new Booking(tourId, cleanName, cleanEmail, cleanPhone, isResident, participantsCount);
         booking.setTotalPrice(totalPrice);
         
@@ -189,7 +189,8 @@ public class BookingService {
         // Update tour participant count
         Tour tour = dbService.getTourById(booking.getTourId());
         if (tour != null) {
-            tour.setCurrentParticipants(tour.getCurrentParticipants() - booking.getParticipantsCount());
+            tour.setCurrentParticipants(Math.max(0, tour.getCurrentParticipants() - booking.getParticipantsCount()));
+            dbService.updateTour(tour);
         }
         
         dbService.updateBooking(booking);
