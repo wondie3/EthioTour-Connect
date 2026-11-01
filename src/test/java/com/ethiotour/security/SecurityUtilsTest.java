@@ -51,6 +51,14 @@ public class SecurityUtilsTest {
     }
 
     @Test
+    public void testInputSanitizerNestedTagsRemoval() {
+        String nestedInput = "<scr<script>ipt>alert('xss')</sc</script>ript>Hello World";
+        String cleaned = InputSanitizer.sanitizeString(nestedInput);
+
+        assertEquals("alert('xss')Hello World", cleaned);
+    }
+
+    @Test
     public void testInputSanitizerEmailValidation() {
         assertTrue(InputSanitizer.isValidEmail("user@ethiotour.com"));
         assertFalse(InputSanitizer.isValidEmail("invalid-email"));
