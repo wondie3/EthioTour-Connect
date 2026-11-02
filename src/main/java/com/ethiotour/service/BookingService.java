@@ -16,9 +16,17 @@ public class BookingService {
     }
     
     public BookingValidationResult validateBooking(int tourId, int participantsCount, boolean isResident) {
+        if (participantsCount <= 0) {
+            return new BookingValidationResult(false, "Number of participants must be greater than 0");
+        }
+
         Tour tour = dbService.getTourById(tourId);
         if (tour == null) {
             return new BookingValidationResult(false, "Tour not found");
+        }
+
+        if (tour.getStatus() == Tour.TourStatus.CANCELLED || tour.getStatus() == Tour.TourStatus.COMPLETED) {
+            return new BookingValidationResult(false, "Cannot book a tour that is " + tour.getStatus());
         }
         
         if (!tour.hasAvailability()) {
@@ -27,10 +35,6 @@ public class BookingService {
         
         if (participantsCount > tour.getAvailableSlots()) {
             return new BookingValidationResult(false, "Only " + tour.getAvailableSlots() + " slots available");
-        }
-        
-        if (participantsCount <= 0) {
-            return new BookingValidationResult(false, "Number of participants must be greater than 0");
         }
         
         // Check if tour date is in the past
@@ -164,6 +168,10 @@ public class BookingService {
             return ChapaPaymentResult.failed("Booking not found.", null, null);
         }
 
+        if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
+            return ChapaPaymentResult.failed("Cannot verify payment for a cancelled booking.", booking.getPaymentReference(), booking.getStatus().toString());
+        }
+
         ChapaPaymentResult result = chapaPaymentService.verifyPayment(booking.getPaymentReference());
         if (result.isSuccess()) {
             booking.setPaymentMethod("Chapa");
@@ -186,10 +194,12 @@ public class BookingService {
         
         booking.updateStatus(Booking.BookingStatus.CANCELLED);
         
-        // Update tour participant count
+        // Update tour participant count and persist
         Tour tour = dbService.getTourById(booking.getTourId());
         if (tour != null) {
-            tour.setCurrentParticipants(tour.getCurrentParticipants() - booking.getParticipantsCount());
+            int updatedParticipants = Math.max(0, tour.getCurrentParticipants() - booking.getParticipantsCount());
+            tour.setCurrentParticipants(updatedParticipants);
+            dbService.updateTour(tour);
         }
         
         dbService.updateBooking(booking);
