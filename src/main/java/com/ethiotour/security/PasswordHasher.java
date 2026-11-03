@@ -32,13 +32,21 @@ public class PasswordHasher {
      * Hashes a password with a given salt using PBKDF2WithHmacSHA256.
      */
     public static String hashPassword(char[] password, byte[] salt) {
+        if (password == null || password.length == 0) {
+            throw new IllegalArgumentException("Password cannot be null or empty");
+        }
+        if (salt == null || salt.length == 0) {
+            throw new IllegalArgumentException("Salt cannot be null or empty");
+        }
+        PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8);
         try {
-            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
             byte[] hash = factory.generateSecret(spec).getEncoded();
             return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException("Error hashing password", e);
+        } finally {
+            spec.clearPassword();
         }
     }
 
@@ -66,17 +74,22 @@ public class PasswordHasher {
             return false;
         }
 
+        PBEKeySpec spec = null;
         try {
             byte[] salt = Base64.getDecoder().decode(parts[0]);
             byte[] expectedHash = Base64.getDecoder().decode(parts[1]);
 
-            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, expectedHash.length * 8);
+            spec = new PBEKeySpec(password, salt, ITERATIONS, expectedHash.length * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
             byte[] computedHash = factory.generateSecret(spec).getEncoded();
 
             return constantTimeEquals(expectedHash, computedHash);
         } catch (Exception e) {
             return false;
+        } finally {
+            if (spec != null) {
+                spec.clearPassword();
+            }
         }
     }
 

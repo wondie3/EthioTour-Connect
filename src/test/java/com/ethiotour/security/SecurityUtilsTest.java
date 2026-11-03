@@ -21,6 +21,9 @@ public class SecurityUtilsTest {
         assertFalse(PasswordHasher.verifyPassword((String) null, "somehash"));
         assertFalse(PasswordHasher.verifyPassword("password", null));
         assertThrows(IllegalArgumentException.class, () -> PasswordHasher.hashPassword((String) null));
+        assertThrows(IllegalArgumentException.class, () -> PasswordHasher.hashPassword(""));
+        assertThrows(IllegalArgumentException.class, () -> PasswordHasher.hashPassword(new char[0], new byte[16]));
+        assertThrows(IllegalArgumentException.class, () -> PasswordHasher.hashPassword("pass".toCharArray(), new byte[0]));
     }
 
     @Test
