@@ -31,14 +31,15 @@ public class SecurityUtilsTest {
         assertFalse(rateLimiter.isLockedOut(username));
 
         rateLimiter.recordFailedAttempt(username);
-        rateLimiter.recordFailedAttempt(username);
+        rateLimiter.recordFailedAttempt("ADMINUSER");
         assertFalse(rateLimiter.isLockedOut(username));
 
-        rateLimiter.recordFailedAttempt(username);
+        rateLimiter.recordFailedAttempt(" AdminUser ");
         assertTrue(rateLimiter.isLockedOut(username));
-        assertTrue(rateLimiter.getRemainingLockoutSeconds(username) > 0);
+        assertTrue(rateLimiter.isLockedOut("adminuser"));
+        assertTrue(rateLimiter.getRemainingLockoutSeconds("ADMINUSER") > 0);
 
-        rateLimiter.recordSuccess(username);
+        rateLimiter.recordSuccess("AdminUser");
         assertFalse(rateLimiter.isLockedOut(username));
     }
 
@@ -48,6 +49,11 @@ public class SecurityUtilsTest {
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
         assertEquals("alert('xss')Hello World", cleaned);
+
+        // Recursive tag stripping test
+        String nestedTags = "<scr<script>ipt>alert('nested')</script>";
+        String cleanedNested = InputSanitizer.sanitizeString(nestedTags);
+        assertEquals("alert('nested')", cleanedNested);
     }
 
     @Test
