@@ -43,11 +43,32 @@ public class SecurityUtilsTest {
     }
 
     @Test
+    public void testLoginRateLimiterCaseInsensitiveBypassProtection() {
+        LoginRateLimiter rateLimiter = new LoginRateLimiter(3, 10);
+
+        rateLimiter.recordFailedAttempt("admin");
+        rateLimiter.recordFailedAttempt("Admin");
+        assertFalse(rateLimiter.isLockedOut("ADMIN"));
+
+        rateLimiter.recordFailedAttempt("ADMIN ");
+        assertTrue(rateLimiter.isLockedOut("admin"));
+        assertTrue(rateLimiter.isLockedOut("aDmIn"));
+    }
+
+    @Test
     public void testInputSanitizerStringAndTagRemoval() {
         String dirtyInput = "<script>alert('xss')</script>Hello World";
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
         assertEquals("alert('xss')Hello World", cleaned);
+    }
+
+    @Test
+    public void testInputSanitizerNestedTagRemoval() {
+        String nestedInput = "<scr<script>ipt>alert('xss')</script>";
+        String cleaned = InputSanitizer.sanitizeString(nestedInput);
+
+        assertEquals("alert('xss')", cleaned);
     }
 
     @Test
