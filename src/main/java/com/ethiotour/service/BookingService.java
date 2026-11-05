@@ -186,10 +186,12 @@ public class BookingService {
         
         booking.updateStatus(Booking.BookingStatus.CANCELLED);
         
-        // Update tour participant count
+        // Update tour participant count and persist back to database
         Tour tour = dbService.getTourById(booking.getTourId());
         if (tour != null) {
-            tour.setCurrentParticipants(tour.getCurrentParticipants() - booking.getParticipantsCount());
+            int remaining = Math.max(0, tour.getCurrentParticipants() - booking.getParticipantsCount());
+            tour.setCurrentParticipants(remaining);
+            dbService.updateTour(tour);
         }
         
         dbService.updateBooking(booking);

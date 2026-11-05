@@ -14,17 +14,27 @@ public class InputSanitizer {
         Pattern.compile("^\\+?[0-9\\s\\-()]{7,20}$");
 
     private static final Pattern HTML_TAG_PATTERN =
-        Pattern.compile("<[^>]*>");
+        Pattern.compile("<[^<>]*>");
 
     /**
-     * Sanitizes string input by stripping HTML tags and trimming whitespace.
+     * Sanitizes string input by iteratively stripping HTML tags and trimming whitespace.
+     * Iterative stripping prevents filter evasion via nested or crafted tags (e.g. `<scr<script>ipt>`).
      */
     public static String sanitizeString(String input) {
         if (input == null) {
             return "";
         }
-        String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
-        return stripped.trim();
+        String current = input;
+        String stripped;
+        // Loop up to 10 iterations to prevent infinite loop while fully unnesting tags
+        for (int i = 0; i < 10; i++) {
+            stripped = HTML_TAG_PATTERN.matcher(current).replaceAll("");
+            if (stripped.equals(current)) {
+                break;
+            }
+            current = stripped;
+        }
+        return current.trim();
     }
 
     /**
