@@ -17,6 +17,14 @@ public class SecurityUtilsTest {
     }
 
     @Test
+    public void testPasswordHasherCharArrayWiping() {
+        char[] password = "secretPassword".toCharArray();
+        String hash = PasswordHasher.hashPassword(password, PasswordHasher.generateSalt());
+        assertNotNull(hash);
+        assertTrue(PasswordHasher.verifyPassword(password, hash));
+    }
+
+    @Test
     public void testPasswordHasherNullAndEmpty() {
         assertFalse(PasswordHasher.verifyPassword((String) null, "somehash"));
         assertFalse(PasswordHasher.verifyPassword("password", null));
@@ -43,11 +51,38 @@ public class SecurityUtilsTest {
     }
 
     @Test
+    public void testLoginRateLimiterCaseAndWhitespaceInsensitive() {
+        LoginRateLimiter rateLimiter = new LoginRateLimiter(3, 10);
+
+        assertFalse(rateLimiter.isLockedOut("admin"));
+        rateLimiter.recordFailedAttempt("ADMIN");
+        rateLimiter.recordFailedAttempt(" admin ");
+        assertFalse(rateLimiter.isLockedOut("admin"));
+
+        rateLimiter.recordFailedAttempt("Admin");
+        // Should be locked out regardless of case or surrounding spaces
+        assertTrue(rateLimiter.isLockedOut("admin"));
+        assertTrue(rateLimiter.isLockedOut("ADMIN"));
+        assertTrue(rateLimiter.isLockedOut(" admin "));
+
+        rateLimiter.recordSuccess(" ADMIN ");
+        assertFalse(rateLimiter.isLockedOut("admin"));
+    }
+
+    @Test
     public void testInputSanitizerStringAndTagRemoval() {
         String dirtyInput = "<script>alert('xss')</script>Hello World";
         String cleaned = InputSanitizer.sanitizeString(dirtyInput);
 
         assertEquals("alert('xss')Hello World", cleaned);
+    }
+
+    @Test
+    public void testInputSanitizerNestedTagRemoval() {
+        String nestedTag = "<scr<script>ipt>alert('xss')</script>";
+        String cleaned = InputSanitizer.sanitizeString(nestedTag);
+
+        assertEquals("alert('xss')", cleaned);
     }
 
     @Test

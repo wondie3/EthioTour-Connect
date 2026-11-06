@@ -55,7 +55,7 @@ public class EthiopianCalendar {
         String[] ethiopianMonths = {
             "Meskerem", "Tekemt", "Hidar", "Tahsas", 
             "Tir", "Yekatit", "Megabit", "Miyazya", 
-            "Ginbot", "Sene", "Hamle", "Nehase"
+            "Ginbot", "Sene", "Hamle", "Nehase", "Pagume"
         };
         
         return ethiopianDate[2] + " " + ethiopianMonths[ethiopianDate[1] - 1] + " " + ethiopianDate[0];
@@ -98,7 +98,7 @@ public class EthiopianCalendar {
 
     private static long daysBeforeEthiopianYear(int ethiopianYear) {
         long previousYears = ethiopianYear - 1L;
-        return previousYears * 365 + previousYears / 4;
+        return previousYears * 365 + (ethiopianYear / 4);
     }
 
     private static void validateEthiopianDate(int year, int month, int day) {

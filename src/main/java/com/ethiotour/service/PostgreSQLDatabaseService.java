@@ -475,9 +475,19 @@ public class PostgreSQLDatabaseService implements IDatabaseService {
                     booking.setId(generatedKeys.getInt(1));
                 }
             }
-            updateTourParticipants(booking.getTourId(), booking.getParticipantsCount());
+            updateTourParticipants(conn, booking.getTourId(), booking.getParticipantsCount());
         } catch (SQLException e) {
             System.err.println("Error adding booking: " + e.getMessage());
+        }
+    }
+
+    private void updateTourParticipants(Connection conn, int tourId, int participantCount) throws SQLException {
+        String query = "UPDATE Tours SET currentParticipants = currentParticipants + ? WHERE id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, participantCount);
+            pstmt.setInt(2, tourId);
+            pstmt.executeUpdate();
         }
     }
 
@@ -525,18 +535,6 @@ public class PostgreSQLDatabaseService implements IDatabaseService {
         return bookings;
     }
 
-    private void updateTourParticipants(int tourId, int participantCount) {
-        String query = "UPDATE Tours SET currentParticipants = currentParticipants + ? WHERE id = ?";
-
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setInt(1, participantCount);
-            pstmt.setInt(2, tourId);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error updating tour participants: " + e.getMessage());
-        }
-    }
 
     private Destination mapRowToDestination(ResultSet rs) throws SQLException {
         return new Destination(
