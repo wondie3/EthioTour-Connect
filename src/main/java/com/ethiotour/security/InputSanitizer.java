@@ -14,7 +14,7 @@ public class InputSanitizer {
         Pattern.compile("^\\+?[0-9\\s\\-()]{7,20}$");
 
     private static final Pattern HTML_TAG_PATTERN =
-        Pattern.compile("<[^>]*>");
+        Pattern.compile("<[^<>]*>");
 
     /**
      * Sanitizes string input by stripping HTML tags and trimming whitespace.
@@ -23,8 +23,15 @@ public class InputSanitizer {
         if (input == null) {
             return "";
         }
-        String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
-        return stripped.trim();
+        String current = input;
+        for (int i = 0; i < 10; i++) {
+            String stripped = HTML_TAG_PATTERN.matcher(current).replaceAll("");
+            if (stripped.equals(current)) {
+                break;
+            }
+            current = stripped;
+        }
+        return current.trim();
     }
 
     /**

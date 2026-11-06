@@ -25,6 +25,10 @@ public class LoginRateLimiter {
         this.lockoutDurationSeconds = lockoutDurationSeconds;
     }
 
+    private String normalizeKey(String key) {
+        return key == null ? null : key.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
     /**
      * Checks if the given key (e.g. username or IP) is locked out due to too many failed attempts.
      */
@@ -33,6 +37,7 @@ public class LoginRateLimiter {
             return false;
         }
 
+        key = normalizeKey(key);
         AttemptInfo info = attemptMap.get(key);
         if (info == null) {
             return false;
@@ -59,6 +64,7 @@ public class LoginRateLimiter {
             return;
         }
 
+        key = normalizeKey(key);
         long now = Instant.now().getEpochSecond();
         attemptMap.compute(key, (k, existing) -> {
             if (existing == null || (now - existing.lastAttemptTime >= lockoutDurationSeconds)) {
@@ -73,7 +79,7 @@ public class LoginRateLimiter {
      */
     public void recordSuccess(String key) {
         if (key != null) {
-            attemptMap.remove(key);
+            attemptMap.remove(normalizeKey(key));
         }
     }
 
@@ -86,6 +92,7 @@ public class LoginRateLimiter {
             return 0;
         }
 
+        key = normalizeKey(key);
         AttemptInfo info = attemptMap.get(key);
         if (info == null || info.attempts < maxAttempts) {
             return 0;
