@@ -51,6 +51,20 @@ public class SecurityUtilsTest {
     }
 
     @Test
+    public void testInputSanitizerNestedTagAndScriptSchemeEvasion() {
+        String nestedTag = "<<script>script>alert(1)<</script>/script>CleanText";
+        String cleanedNested = InputSanitizer.sanitizeString(nestedTag);
+        assertEquals("alert(1)CleanText", cleanedNested);
+
+        String schemeInput = "javascript:alert(1)";
+        String cleanedScheme = InputSanitizer.sanitizeString(schemeInput);
+        assertEquals("alert(1)", cleanedScheme);
+
+        String mixedCaseScheme = "  JaVaScRiPt:doSomething()  ";
+        assertEquals("doSomething()", InputSanitizer.sanitizeString(mixedCaseScheme));
+    }
+
+    @Test
     public void testInputSanitizerEmailValidation() {
         assertTrue(InputSanitizer.isValidEmail("user@ethiotour.com"));
         assertFalse(InputSanitizer.isValidEmail("invalid-email"));
