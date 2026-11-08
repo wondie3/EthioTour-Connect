@@ -184,37 +184,43 @@ public class AdminLoginView extends JFrame {
         String username = usernameField.getText().trim();
         char[] password = passwordField.getPassword();
 
-        if (rateLimiter.isLockedOut(username)) {
-            long remaining = rateLimiter.getRemainingLockoutSeconds(username);
-            JOptionPane.showMessageDialog(this,
-                    "Account locked due to multiple failed login attempts. Please try again in " + remaining + " seconds.",
-                    "Account Locked",
-                    JOptionPane.WARNING_MESSAGE);
-            passwordField.setText("");
-            return;
-        }
+        try {
+            if (rateLimiter.isLockedOut(username)) {
+                long remaining = rateLimiter.getRemainingLockoutSeconds(username);
+                JOptionPane.showMessageDialog(this,
+                        "Account locked due to multiple failed login attempts. Please try again in " + remaining + " seconds.",
+                        "Account Locked",
+                        JOptionPane.WARNING_MESSAGE);
+                passwordField.setText("");
+                return;
+            }
 
-        boolean valid = ADMIN_USERNAME.equalsIgnoreCase(username) && PasswordHasher.verifyPassword(password, ADMIN_PASSWORD_HASH);
+            boolean valid = ADMIN_USERNAME.equalsIgnoreCase(username) && PasswordHasher.verifyPassword(password, ADMIN_PASSWORD_HASH);
 
-        if (valid) {
-            rateLimiter.recordSuccess(username);
-            backgroundPanel.stopAnimation();
-            dispose();
-            MainView mainView = new MainView();
-            mainView.setVisible(true);
-        } else {
-            rateLimiter.recordFailedAttempt(username);
-            int attemptsLeft = 5 - (rateLimiter.isLockedOut(username) ? 5 : 0);
-            String message = rateLimiter.isLockedOut(username)
-                    ? "Too many failed attempts. Account locked for 5 minutes."
-                    : "Invalid admin username or password.";
+            if (valid) {
+                rateLimiter.recordSuccess(username);
+                backgroundPanel.stopAnimation();
+                dispose();
+                MainView mainView = new MainView();
+                mainView.setVisible(true);
+            } else {
+                rateLimiter.recordFailedAttempt(username);
+                int attemptsLeft = 5 - (rateLimiter.isLockedOut(username) ? 5 : 0);
+                String message = rateLimiter.isLockedOut(username)
+                        ? "Too many failed attempts. Account locked for 5 minutes."
+                        : "Invalid admin username or password.";
 
-            JOptionPane.showMessageDialog(this,
-                    message,
-                    "Login failed",
-                    JOptionPane.ERROR_MESSAGE);
-            passwordField.setText("");
-            passwordField.requestFocusInWindow();
+                JOptionPane.showMessageDialog(this,
+                        message,
+                        "Login failed",
+                        JOptionPane.ERROR_MESSAGE);
+                passwordField.setText("");
+                passwordField.requestFocusInWindow();
+            }
+        } finally {
+            if (password != null) {
+                java.util.Arrays.fill(password, '\0');
+            }
         }
     }
 
