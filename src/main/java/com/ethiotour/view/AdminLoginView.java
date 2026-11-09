@@ -37,10 +37,19 @@ import com.ethiotour.security.LoginRateLimiter;
 import com.ethiotour.security.PasswordHasher;
 
 public class AdminLoginView extends JFrame {
-    private static final String ADMIN_USERNAME = "admin";
-    // Store hashed password (generated via PasswordHasher for "admin123")
-    private static final String ADMIN_PASSWORD_HASH = PasswordHasher.hashPassword("admin123");
+    private static final String DEFAULT_ADMIN_USERNAME = "admin";
+    // Store default hashed password (generated via PasswordHasher for "admin123")
+    private static final String DEFAULT_ADMIN_PASSWORD_HASH = PasswordHasher.hashPassword("admin123");
     private final LoginRateLimiter rateLimiter = new LoginRateLimiter(5, 300);
+
+    public static String getExpectedAdminUsername() {
+        return com.ethiotour.config.DatabaseConfig.getAdminUsername();
+    }
+
+    public static String getExpectedAdminPasswordHash() {
+        String configuredHash = com.ethiotour.config.DatabaseConfig.getAdminPasswordHash();
+        return (configuredHash != null && !configuredHash.isBlank()) ? configuredHash : DEFAULT_ADMIN_PASSWORD_HASH;
+    }
     private static final String[] BACKGROUND_IMAGES = {
             "/images/addis.png",
             "/images/bunna.png",
@@ -101,7 +110,7 @@ public class AdminLoginView extends JFrame {
 
         styleTextField(usernameField);
         styleTextField(passwordField);
-        usernameField.setText(ADMIN_USERNAME);
+        usernameField.setText(getExpectedAdminUsername());
         passwordField.addActionListener(this::login);
 
         JButton loginButton = new JButton("Sign In");
@@ -184,37 +193,43 @@ public class AdminLoginView extends JFrame {
         String username = usernameField.getText().trim();
         char[] password = passwordField.getPassword();
 
-        if (rateLimiter.isLockedOut(username)) {
-            long remaining = rateLimiter.getRemainingLockoutSeconds(username);
-            JOptionPane.showMessageDialog(this,
-                    "Account locked due to multiple failed login attempts. Please try again in " + remaining + " seconds.",
-                    "Account Locked",
-                    JOptionPane.WARNING_MESSAGE);
-            passwordField.setText("");
-            return;
-        }
+        try {
+            if (rateLimiter.isLockedOut(username)) {
+                long remaining = rateLimiter.getRemainingLockoutSeconds(username);
+                JOptionPane.showMessageDialog(this,
+                        "Account locked due to multiple failed login attempts. Please try again in " + remaining + " seconds.",
+                        "Account Locked",
+                        JOptionPane.WARNING_MESSAGE);
+                passwordField.setText("");
+                return;
+            }
 
-        boolean valid = ADMIN_USERNAME.equalsIgnoreCase(username) && PasswordHasher.verifyPassword(password, ADMIN_PASSWORD_HASH);
+            String expectedUser = getExpectedAdminUsername();
+            String expectedHash = getExpectedAdminPasswordHash();
+            boolean valid = expectedUser.equalsIgnoreCase(username) && PasswordHasher.verifyPassword(password, expectedHash);
 
-        if (valid) {
-            rateLimiter.recordSuccess(username);
-            backgroundPanel.stopAnimation();
-            dispose();
-            MainView mainView = new MainView();
-            mainView.setVisible(true);
-        } else {
-            rateLimiter.recordFailedAttempt(username);
-            int attemptsLeft = 5 - (rateLimiter.isLockedOut(username) ? 5 : 0);
-            String message = rateLimiter.isLockedOut(username)
-                    ? "Too many failed attempts. Account locked for 5 minutes."
-                    : "Invalid admin username or password.";
+            if (valid) {
+                rateLimiter.recordSuccess(username);
+                backgroundPanel.stopAnimation();
+                dispose();
+                MainView mainView = new MainView();
+                mainView.setVisible(true);
+            } else {
+                rateLimiter.recordFailedAttempt(username);
+                String message = rateLimiter.isLockedOut(username)
+                        ? "Too many failed attempts. Account locked for 5 minutes."
+                        : "Invalid admin username or password.";
 
-            JOptionPane.showMessageDialog(this,
-                    message,
-                    "Login failed",
-                    JOptionPane.ERROR_MESSAGE);
-            passwordField.setText("");
-            passwordField.requestFocusInWindow();
+                JOptionPane.showMessageDialog(this,
+                        message,
+                        "Login failed",
+                        JOptionPane.ERROR_MESSAGE);
+                passwordField.setText("");
+                passwordField.requestFocusInWindow();
+            }
+        } finally {
+            // Zero out password character array in memory for defense-in-depth against memory scraping
+            java.util.Arrays.fill(password, '\0');
         }
     }
 
