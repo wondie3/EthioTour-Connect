@@ -55,7 +55,12 @@ public class DatabaseConfig {
     }
 
     public static String getProperty(String key, String defaultValue) {
-        // Try to read from environment variables first (e.g. DB_POSTGRESQL_URL)
+        // Try system properties first, then environment variables, then properties file
+        String sysProp = System.getProperty(key);
+        if (sysProp != null && !sysProp.trim().isEmpty()) {
+            return sysProp;
+        }
+
         String envKey = key.toUpperCase().replace('.', '_');
         String envProp = System.getenv(envKey);
         if (envProp != null && !envProp.trim().isEmpty()) {
@@ -148,6 +153,23 @@ public class DatabaseConfig {
     // SQLite Configuration Getters
     public static String getSQLitePath() {
         return getProperty("db.sqlite.path", "ethiotour.db");
+    }
+
+    // Admin Security Configuration Getters
+    public static String getAdminUsername() {
+        return getProperty("admin.username", "admin");
+    }
+
+    public static String getAdminPasswordHash() {
+        String directHash = getProperty("admin.password.hash", "");
+        if (!directHash.isBlank()) {
+            return directHash.trim();
+        }
+        String rawPassword = getProperty("admin.password", "");
+        if (!rawPassword.isBlank()) {
+            return com.ethiotour.security.PasswordHasher.hashPassword(rawPassword.trim());
+        }
+        return null;
     }
 
     // Database Mode
